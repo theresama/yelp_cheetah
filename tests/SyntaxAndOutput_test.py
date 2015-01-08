@@ -1615,11 +1615,11 @@ $os.path.exists('.')""",
                     repr(True))
 
     def test11(self):
-        """#from math import *
-        """
-
-        self.verify("#from math import *\n$pow(1,2) $log10(10)",
-                    "1.0 1.0")
+        self.verify(
+            "#from math import *\n"
+            "$globals()['pow'](1,2) $globals()['log10'](10)",
+            "1.0 1.0",
+        )
 
 
 def test_extends():

@@ -761,7 +761,7 @@ class _LowLevelParser(SourceReader):
         """
         expr_pos = self.pos()
         expr = self.getExpression(**kwargs)
-        if 'VFN(' in expr or 'VFFSL(' in expr:
+        if 'VFN(' in expr or 'VFSL(' in expr or 'VFFSL(' in expr:
             self.setPos(expr_pos)
             raise ParseError(self, failure_msg)
         return expr

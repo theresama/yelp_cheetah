@@ -536,11 +536,12 @@ class LegacyCompiler(SettingsManager):
         self._importStatements = [
             'from Cheetah.DummyTransaction import DummyTransaction',
             'from Cheetah.NameMapper import valueForName as VFN',
+            'from Cheetah.NameMapper import valueFromSearchList as VFSL',
             'from Cheetah.NameMapper import valueFromFrameOrSearchList as VFFSL',
             'from Cheetah.Template import NO_CONTENT',
         ]
         self._global_vars = set((
-            'DummyTransaction', 'NO_CONTENT', 'VFN', 'VFFSL',
+            'DummyTransaction', 'NO_CONTENT', 'VFN', 'VFSL', 'VFFSL',
         ))
 
         self._gettext_scannables = []
@@ -674,7 +675,7 @@ class LegacyCompiler(SettingsManager):
 
         if optimize_enabled:
             namept1, dot, rest = name.partition('.')
-            pythonCode = 'VFFSL(SL, "{0}"){1}{2}{3}'.format(
+            pythonCode = 'VFSL(SL, "{0}"){1}{2}{3}'.format(
                 namept1, dot, rest, remainder,
             )
         else:

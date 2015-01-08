@@ -59,7 +59,7 @@ def test_optimized_attributes_of_builtins_function_args():
 
 def test_non_optimized_searchlist():
     src = compile_source('$int($foo)')
-    assert ' _v = int(VFFSL(SL, "foo"' in src
+    assert ' _v = int(VFSL(SL, "foo"' in src
 
 
 def test_optimization_still_prefers_locals():
@@ -219,7 +219,7 @@ class fooobj(object):
 def test_optimization_removes_VFN():
     src = compile_source(VFN_opt_src)
     assert 'VFN(' not in src
-    assert ' _v = VFFSL(SL, "foo").barvar[0].upper() #' in src
+    assert ' _v = VFSL(SL, "foo").barvar[0].upper() #' in src
     cls = compile_to_class(VFN_opt_src)
     assert cls([{'foo': fooobj}]).respond() == 'W'
 
