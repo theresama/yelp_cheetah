@@ -814,7 +814,7 @@ class LegacyParser(_LowLevelParser):
     Cheetah.legacy_compiler.LegacyCompiler
     """
 
-    def __init__(self, src, compiler=None):
+    def __init__(self, src, compiler):
         super(LegacyParser, self).__init__(src)
         self.setSettingsManager(compiler)
         self._compiler = compiler
