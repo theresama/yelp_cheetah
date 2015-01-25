@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from collections import defaultdict
+
 
 def convert_value(s):
     if s.lower() == 'none':
@@ -19,6 +21,7 @@ class SettingsManager(object):
     def __init__(self):
         self._settings = {}
         self._initializeSettings()
+        self._stacks = defaultdict(list)
 
     def _initializeSettings(self):
         raise NotImplementedError
@@ -30,6 +33,13 @@ class SettingsManager(object):
         if name not in self._settings:
             raise UnexpectedSettingName(name)
         self._settings[name] = value
+
+    def pushSetting(self, name, value):
+        self._stacks[name].append(self.setting(name))
+        self.setSetting(name, value)
+
+    def popSetting(self, name):
+        self.setSetting(name, self._stacks[name].pop())
 
     def updateSettings(self, new_settings):
         """Update the settings with a selective merge or a complete overwrite."""

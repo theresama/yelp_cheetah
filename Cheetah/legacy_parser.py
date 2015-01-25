@@ -273,17 +273,6 @@ class _LowLevelParser(SourceReader):
     state management.
     """
 
-    _settingsManager = None
-
-    def setSettingsManager(self, settingsManager):
-        self._settingsManager = settingsManager
-
-    def setting(self, key):
-        return self._settingsManager.setting(key)
-
-    def setSetting(self, key, val):
-        self._settingsManager.setSetting(key, val)
-
     def matchTopLevelToken(self):
         """Returns the first match found from the following methods:
             self.matchCommentStartToken
@@ -446,9 +435,6 @@ class _LowLevelParser(SourceReader):
         """This is called when parsing inside expressions."""
         if not skipStartToken:
             self.getCheetahVarStartToken()
-        return self.getCheetahVarBody(plain=plain)
-
-    def getCheetahVarBody(self, plain=False):
         # @@TR: this should be in the compiler
         lineCol = self.getRowCol()
         return self._compiler('genCheetahVar', self.getCheetahVarNameChunks(), lineCol, plain=plain)
@@ -816,7 +802,6 @@ class LegacyParser(_LowLevelParser):
 
     def __init__(self, src, compiler):
         super(LegacyParser, self).__init__(src)
-        self.setSettingsManager(compiler)
         self._compiler = compiler
         self._openDirectivesStack = []
 
@@ -1241,14 +1226,13 @@ class LegacyParser(_LowLevelParser):
         self.getDirectiveStartToken()
         self.advance(len('call'))
 
-        useAutocallingOrig = self.setting('useAutocalling')
-        self.setSetting('useAutocalling', False)
+        self._compiler('pushSetting', 'useAutocalling', False)
         self.getWhiteSpace()
         if self.matchCheetahVarStart():
             functionName = self.getCheetahVar()
         else:
             functionName = self.getCheetahVar(plain=True, skipStartToken=True)
-        self.setSetting('useAutocalling', useAutocallingOrig)
+        self._compiler('popSetting', 'useAutocalling')
 
         self.getWhiteSpace()
         args = self.getExpression(pyTokensToBreakAt=[':']).strip()
