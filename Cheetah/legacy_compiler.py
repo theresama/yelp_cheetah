@@ -244,10 +244,7 @@ class MethodCompiler(object):
 
     addFor = addWith = _add_lvalue_indenting_directive
 
-    def addReIndentingDirective(self, expr, line_col, dedent=True):
-        self.commitStrConst()
-        if dedent:
-            self.dedent()
+    def addReIndentingDirective(self, expr, line_col):
         assert expr[-1] != ':'
         expr = expr + ':'
 
@@ -257,13 +254,13 @@ class MethodCompiler(object):
 
     addFinally = addReIndentingDirective
 
-    def addExcept(self, expr, line_col, dedent=True):
+    def addExcept(self, expr, line_col):
         self._update_locals('try:\n    pass\n' + expr + ':\n    pass')
-        self.addReIndentingDirective(expr, line_col, dedent=dedent)
+        self.addReIndentingDirective(expr, line_col)
 
-    def addElse(self, expr, line_col, dedent=True):
+    def addElse(self, expr, line_col):
         expr = re.sub('else +if', 'elif', expr)
-        self.addReIndentingDirective(expr, line_col, dedent=dedent)
+        self.addReIndentingDirective(expr, line_col)
 
     addElif = addElse
 
@@ -524,6 +521,10 @@ class LegacyCompiler(SettingsManager):
         ClassCompiler, and thereby the MethodCompilers as well.
         """
         return getattr(self._class_compiler, name)
+
+    def __call__(self, event, *args, **kwargs):
+        # ick
+        return getattr(self, event)(*args, **kwargs)
 
     def _initializeSettings(self):
         self._settings = copy.deepcopy(DEFAULT_COMPILER_SETTINGS)
