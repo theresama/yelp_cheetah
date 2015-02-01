@@ -267,6 +267,15 @@ class ArgList(object):
         return list(six.moves.zip_longest((a.strip() for a in self.arguments), defaults))
 
 
+class CheetahVar(object):
+    """Represent a single $cheetah.foo.bar(wat)"""
+
+    def __init__(self, chunks, line_col, plain):
+        self.chunks = chunks
+        self.line_col = line_col
+        self.plain = plain
+
+
 class _LowLevelParser(SourceReader):
     """This class implements the methods to match or extract ('get*') the basic
     elements of Cheetah's grammar.  It does NOT handle any code generation or
@@ -437,7 +446,7 @@ class _LowLevelParser(SourceReader):
             self.getCheetahVarStartToken()
         # @@TR: this should be in the compiler
         lineCol = self.getRowCol()
-        return self._compiler('genCheetahVar', self.getCheetahVarNameChunks(), lineCol, plain=plain)
+        return CheetahVar(self.getCheetahVarNameChunks(), lineCol, plain=plain)
 
     def getCheetahVarNameChunks(self):
         """nameChunks = list of Cheetah $var subcomponents represented as tuples
@@ -772,24 +781,25 @@ class _LowLevelParser(SourceReader):
 
         if self.matchIdentifier():
             nameChunks = self.getCheetahVarNameChunks()
-            expr = self._compiler('genCheetahVar', nameChunks[:], lineCol, plain=plain)
+            expr = [CheetahVar(nameChunks[:], lineCol, plain=plain)]
             restOfExpr = None
             if enclosures:
                 whitespace = self.getWhiteSpace()
-                expr += whitespace
+                expr.append(whitespace)
                 if self.peek() == closurePairsRev[enclosureOpenChar]:
                     self.getc()
                 else:
                     restOfExpr = self.getExpression(enclosed=True, enclosures=enclosures)
                     assert restOfExpr[-1] == closurePairsRev[enclosureOpenChar]
                     restOfExpr = restOfExpr[:-1]
-                    expr += restOfExpr
+                    expr.append(restOfExpr)
             rawPlaceholder = self[startPos:self.pos()]
         else:
             expr = self.getExpression(enclosed=True, enclosures=enclosures)
             assert expr[-1] == closurePairsRev[enclosureOpenChar]
             expr = expr[:-1]
             rawPlaceholder = self[startPos:self.pos()]
+            expr = [expr]
 
         return expr, rawPlaceholder, lineCol
 

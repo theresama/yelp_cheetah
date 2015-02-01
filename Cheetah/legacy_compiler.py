@@ -20,6 +20,7 @@ import six
 
 from Cheetah.ast_utils import get_imported_names
 from Cheetah.ast_utils import get_lvalues
+from Cheetah.legacy_parser import CheetahVar
 from Cheetah.legacy_parser import escapedNewlineRE
 from Cheetah.legacy_parser import LegacyParser
 from Cheetah.SettingsManager import SettingsManager
@@ -207,10 +208,6 @@ class MethodCompiler(object):
     def _update_locals(self, expr):
         self._local_vars.update(get_lvalues(expr))
 
-    def addPlaceholder(self, expr, rawPlaceholder, line_col):
-        self.addFilteredChunk(expr, rawPlaceholder, line_col)
-        self._append_line_col_comment(line_col)
-
     def _add_with_line_col(self, expr, line_col):
         self._update_locals(expr)
         self.addChunk(expr)
@@ -269,6 +266,7 @@ class MethodCompiler(object):
         return '_{0}'.format(self._next_variable_id)
 
     def startCallRegion(self, function_name, args, lineCol):
+        function_name = self._compile_chunks([function_name])
         call_id = self.next_id()
         call_details = CallDetails(call_id, function_name, args, lineCol)
         self._callRegionsStack.append(call_details)
@@ -553,6 +551,18 @@ class LegacyCompiler(SettingsManager):
             self._global_vars.update(varNames)
 
     # methods for adding stuff to the module and class definitions
+    def _compile_chunks(self, chunks):
+        return ''.join([
+            self.genCheetahVar(chunk.chunks, chunk.line_col, chunk.plain)
+            if type(chunk) is CheetahVar else
+            chunk
+            for chunk in chunks
+        ])
+
+    def addPlaceholder(self, expr, rawPlaceholder, line_col):
+        expr = self._compile_chunks(expr)
+        self.addFilteredChunk(expr, rawPlaceholder, line_col)
+        self._append_line_col_comment(line_col)
 
     def genCheetahVar(self, nameChunks, lineCol, plain=False):
         first_accessed_var = nameChunks[0][0].partition('.')[0]
